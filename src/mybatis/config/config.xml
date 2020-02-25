@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+  <environments default="">
+    <environment id="">
+      <transactionManager type="JDBC"/>
+      <dataSource type="JNDI"><!-- POOLED를 JNDI로 바꿔준다. 톰캣으로 양도했기 때문이다. Java Naming and Directory Interface. JNDI기법이라고도 한다. JNDI는 객체이다. -->
+        <property name="data_source" value="java:comp/env/jdbc/oracle"/><!-- JNDI의 멤버변수이다. java:comp/env/이건 고정이다. (JNDI기법 또는 문법) 찾아갈 이름을 적는다.
+        자바는 jdbc기반이기 때문에 jdbc/MySQL 이런식으로 사용된다. -->
+      </dataSource>
+    </environment>
+  </environments>
+  <mappers>
+    <mapper resource="mybatis/mapper/bbs.xml"/>
+  </mappers>
+</configuration>

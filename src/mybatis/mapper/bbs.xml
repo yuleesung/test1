@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="bbs">
+	
+	<resultMap type="mybatis.vo.BbsVO" id="map1">
+		<id column="b_idx" property="b_idx"/>
+		<collection property="c_list" ofType="mybatis.vo.CommentVO" select="commList" column="b_idx"/>
+	</resultMap>
+	
+	<select id="commList" resultType="mybatis.vo.CommentVO" parameterType="String">
+		select c_idx, writer, content, write_date, ip, b_idx from comment_t where b_idx = #{b_idx}
+	</select>
+	
+	<!-- 전체보기 -->
+	<select id="getList" resultMap="map1" parameterType="java.util.Map">
+		select * from(	
+			select rownum r_num, a.* from
+				(select b_idx, subject, writer, content, file_name, ori_name, write_date, ip, hit, status from bbs_t where status = 0 order by b_idx desc) a
+		)where r_num between #{begin} and #{end}
+	</select>
+	
+	<!-- 전체 게시물 수 -->
+	<select id="getCount" resultType="int">
+		select count(*) from bbs_t where status = 0
+	</select>
+	
+	<!-- 게시물 추가 -->
+	<insert id="addPost" parameterType="mybatis.vo.BbsVO">
+		insert into bbs_t(b_idx, subject, writer, content, file_name, ori_name, pwd, write_date, ip, hit, status)
+		values(bbs_t_seq.nextval, #{subject}, #{writer}, #{content}, #{file_name}, #{ori_name}, #{pwd}, sysdate, #{ip}, #{hit}, #{status})
+	</insert>
+	
+	<!-- 게시물 보기 -->
+	<select id="viewPost" parameterType="String" resultMap="map1">
+		select b_idx, subject, writer, content, file_name, ori_name, write_date, ip, hit, status from bbs_t where b_idx = #{b_idx}
+	</select>
+	
+	<!-- 게시물 수정 -->
+	<update id="editPost" parameterType="java.util.Map">
+		update bbs_t
+		<set>
+			write_date = sysdate,
+			<trim suffixOverrides=",">
+				<if test="subject != null">
+					subject = #{subject},
+				</if>
+				<if test="file_name != null">
+					file_name = #{file_name},
+				</if>
+				<if test="ori_name != null">
+					ori_name = #{ori_name},
+				</if>
+				<if test="content != null">
+					content = #{content}
+				</if>
+				<if test="ip != null">
+					ip = #{ip}
+				</if>
+			</trim>
+		</set>
+		where b_idx = #{b_idx} and pwd = #{pwd}
+	</update>
+	
+	<!-- 게시물 삭제 -->
+	<update id="delPost" parameterType="java.util.Map">
+		update bbs_t set status = 1 where b_idx = #{b_idx} and pwd = #{pwd}
+	</update>
+	
+	<!-- 댓글 저장 -->
+	<insert id="addComm" parameterType="java.util.Map">
+		insert into comment_t values(comment_t_seq.nextval, #{writer}, #{content}, #{pwd}, sysdate, #{ip}, #{b_idx})
+	</insert>
+	
+	<!-- 조회수를 올려주는 기능 -->
+	<update id="hit" parameterType="String">
+		update bbs_t set hit = hit+1 where b_idx = #{b_idx}
+	</update>
+
+</mapper>
